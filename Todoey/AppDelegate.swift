@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -18,39 +18,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Print the application path on Mac's disk
         // print(NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).last as! String)
 
-        return true
-    }
+        // Prints the Realm file location
+        // print(Realm.Configuration.defaultConfiguration.fileURL)
 
-    func applicationWillTerminate(_ application: UIApplication) {
-        self.saveContext()
-    }
+        let config = Realm.Configuration(
+            schemaVersion: 1,
+            migrationBlock: { migration, oldSchemaVersion in
+                if (oldSchemaVersion < 1) {
+                    migration.enumerateObjects(ofType: Item.className()) { (oldObject, newObject) in
+                        newObject!["dateCreatedAt"] = Date(timeIntervalSinceReferenceDate: 0)
+                    }
+                }
+            })
 
-    // MARK: - Core Data stack
+        // Tell Realm to use this new configuration object for the default Realm
+        Realm.Configuration.defaultConfiguration = config
 
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "DataModel")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        })
-        return container
-    }()
-
-    // MARK: - Core Data Saving support
-
-    func saveContext () {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
+        // Now that we've told Realm how to handle the schema change, opening the file
+        // will automatically perform the migration
+        do {
+            _ = try Realm()
+        } catch {
+            print("Error initializing new realm: \(error)")
         }
+
+        return true
     }
 }
 
