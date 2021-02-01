@@ -15,6 +15,7 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
         super.viewDidLoad()
 
         self.tableView.rowHeight = 80.0
+        self.tableView.separatorStyle = .none
     }
 
     // MARK: - TableView data source methods
@@ -50,5 +51,37 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
 
     func delete(at indexPath: IndexPath) {
         fatalError("Must override method in sub-class")
+    }
+}
+
+extension UIViewController {
+    func configureNavigationBar(largeTitleColor: UIColor, backgroundColor: UIColor, tintColor: UIColor, title: String? = nil) {
+        guard let navigationBar = navigationController?.navigationBar else {
+            fatalError("Navigation controller does not exist")
+        }
+
+        if #available(iOS 13.0, *) {
+            let navBarAppearance = UINavigationBarAppearance()
+            navBarAppearance.configureWithOpaqueBackground()
+            navBarAppearance.largeTitleTextAttributes = [.foregroundColor: largeTitleColor]
+            navBarAppearance.titleTextAttributes = [.foregroundColor: largeTitleColor]
+            navBarAppearance.backgroundColor = backgroundColor
+
+            navigationBar.standardAppearance = navBarAppearance
+            navigationBar.compactAppearance = navBarAppearance
+            navigationBar.scrollEdgeAppearance = navBarAppearance
+
+            navigationBar.isTranslucent = false
+            navigationBar.tintColor = tintColor
+        } else {
+            // Fallback on earlier versions
+            navigationBar.barTintColor = backgroundColor
+            navigationBar.tintColor = tintColor
+            navigationBar.isTranslucent = false
+        }
+
+        if title != nil {
+            navigationItem.title = title
+        }
     }
 }

@@ -8,10 +8,10 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class TodoListViewController: SwipeTableViewController {
     lazy var realm = try! Realm()
-
     var items: Results<Item>?
 
     var category: Category? {
@@ -20,10 +20,23 @@ class TodoListViewController: SwipeTableViewController {
         }
     }
 
+    @IBOutlet weak var searchBar: UISearchBar!
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        if let category = category, let color = UIColor(hexString: category.hexColor) {
+            let contrastColor = ContrastColorOf(color, returnFlat: true)
+            configureNavigationBar(largeTitleColor: contrastColor, backgroundColor: color, tintColor: contrastColor, title: category.name)
+
+            searchBar.barTintColor = color
+        }
+
+        self.title = category?.name
     }
 
     // MARK: - TabelView DataSource methods
@@ -39,6 +52,12 @@ class TodoListViewController: SwipeTableViewController {
         if let item = items?[indexPath.row] {
             cell.textLabel!.text = item.title
             cell.accessoryType = item.done ? .checkmark : .none
+            let percentage = CGFloat(indexPath.row) / CGFloat(items!.count)
+
+            if let backgroundColor = UIColor(hexString: category!.hexColor)?.darken(byPercentage: percentage) {
+                cell.backgroundColor = backgroundColor
+                cell.textLabel?.textColor = ContrastColorOf(backgroundColor, returnFlat: true)
+            }
         } else {
             cell.textLabel!.text = "No todos added yet"
             cell.accessoryType = .none

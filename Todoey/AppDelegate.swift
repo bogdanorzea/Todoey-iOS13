@@ -22,14 +22,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // print(Realm.Configuration.defaultConfiguration.fileURL)
 
         let config = Realm.Configuration(
-            schemaVersion: 1,
+            schemaVersion: 2,
             migrationBlock: { migration, oldSchemaVersion in
                 if (oldSchemaVersion < 1) {
                     migration.enumerateObjects(ofType: Item.className()) { (oldObject, newObject) in
                         newObject!["dateCreatedAt"] = Date(timeIntervalSinceReferenceDate: 0)
                     }
+                } else if (oldSchemaVersion < 2) {
+                    migration.enumerateObjects(ofType: Category.className()) { (oldObject, newObject) in
+                        newObject!["hexColor"] = "#FFFFFF"
+                    }
                 }
-            })
+            }
+        )
 
         // Tell Realm to use this new configuration object for the default Realm
         Realm.Configuration.defaultConfiguration = config
